@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Upload</title>
+</head>
+<body>
+    <form name="upload" action="" method="post" id="uploadform">
+        <input name="file" type="file" class="form" id="form__file"><br>
+        <input type="submit" class="form" id="form__submit">
+    </form><br>
+    <img id="uploadedImg" src="" alt="Firstly upload an image" srcset=""><br>
+    <textarea id="tx" name="" id="" cols="30" rows="10"></textarea>
+    <script>
+        $('#uploadform')
+        .submit((e) => {
+            let files = $('#form__file').prop('files')[0];
+            let formdata = new FormData(document.forms.upload);
+            console.log(formdata.get('file'));
+            e.preventDefault();
+            $.ajax({
+                url:'/upload',
+                dataType:'text',
+                cache:false,
+                contentType:false,
+                processData:false,
+                data:formdata,
+                type:'post',
+                complete: (resp) => {console.log(JSON.parse(resp.responseText)); $('#tx').val(resp.responseText); $('#uploadedImg').attr('src', JSON.parse(resp.responseText).data.url)}
+
+            });
+            return false;
+        })
+    </script>
+</body>
+</html>
