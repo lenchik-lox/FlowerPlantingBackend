@@ -145,6 +145,7 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
                             elapsed: `${endTime - startTime}ms`,
                         }
                     })
+                    fs.rm(filepath+'.temp');
                 })
             })
         });
