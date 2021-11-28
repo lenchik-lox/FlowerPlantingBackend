@@ -1,21 +1,22 @@
 const { getReasonPhrase } = require("http-status-codes");
 
 class ServerError extends Error {
-    constructor(statusCode, message = undefined) {
+    constructor(statusCode, body = {}) {
         super();
         this.status = statusCode;
         this.statusMessage = getReasonPhrase(statusCode);
-        this.message = message;
+        this.errorBody = body || {};
     }
     get body() {
-        return {
+        let ret = {
             status: this.status,
             message: this.statusMessage,
             error: {
-                message: this.message,
+                message: this.errorBody || this.errorBody.message,
             },
             data: {},
         }
+        return ret;
     }
 }
 module.exports = ServerError;

@@ -6,21 +6,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>Upload</title>
+    <style>
+        fieldset {
+            display: flex;
+            max-width:80%;
+        }
+        form {
+            display:flex;
+            width:fit-content;
+            max-width:80%;
+        }
+        .btns {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            display:inline-block;
+
+        }
+        #prev {
+            max-width: 128px;
+            max-height: 128px;
+        }
+        #uploadedImg {
+            width:300px;
+            height: 300px;
+            image-rendering: pixelated;
+        }
+        .samples {
+            padding:10px;
+        }
+        .sample {
+            width:100px;
+            height:100px;
+            margin: 5px;
+            border: 2px solid white;
+            cursor: pointer;
+        }
+        .sample:hover {
+            border:2px solid red;
+        }
+        .sample .active {
+            border:2px solid red;
+        }
+        .ss {
+            display: flex;
+        }
+        .ss span {
+            min-width:230px;
+        }
+        .propstr {
+            cursor:help;
+            border-bottom: 1px dashed gray;
+            padding-bottom:0.8px;
+        }
+    </style>
 </head>
 <body>
-    <form name="upload" action="" method="post" id="uploadform">
-        <input name="file" type="file" class="form" id="form__file"><br>
-        <input type="submit" class="form" id="form__submit">
-    </form><br>
-    <img id="uploadedImg" src="" alt="Firstly upload an image" srcset=""><br>
-    <textarea id="tx" name="" id="" cols="30" rows="10"></textarea>
+    <center style="margin-top:6%; font-size:26px">
+        <fieldset>
+            <form name="upload" action="" method="post" id="uploadform">
+                <div>
+                    <input name="file" type="file" class="form" id="form__file" > or <input id="urlinp" name="file" type="text" placeholder="URL"><br>
+                    <img id="prev" src="" alt="loaded img preview" srcset="">
+                </div>
+                
+                <div class="btns">
+                    <div class="ss">
+                        <span title="Тип цвета (0 - монохром, 2 - цветной, 4 - монохром, 6 - цветной)" class="propstr" id="colorType_num">color type: 6</span>
+                        <input id="colorType_range" value="6" name="colorType" type="range" step="2" max="6" min="0"/> 
+                    </div>
+                    <div class="ss">
+                        <span title="Ограничение по цветам" class="propstr" id="posterize_num">posterize: 8x</span>
+                        <input id="posterize_range" value="16" name="posterize" type="range" step="1" max="32" min="2"/> 
+                    </div>
+                    <div class="ss">
+                        <span title="Расширение изображения" class="propstr" id="resolution_num">resolution: 16x16</span>
+                        <input id="resolution_range" value="16" name="resolution" type="range" step="16" max="256" min="16"/> 
+                    </div>
+                    
+                    <div class="ss">
+                        <input type="checkbox" id="normalize" name="normalize">
+                        <label title="Нормальзация" for="normalize">normalize</label>
+                    </div>
+                    <div class="ss">
+                        <input type="checkbox" id="grayscale" name="grayscale">
+                        <label title="Монохром" for="grayscale">grayscale</label>
+                    </div>
+                     
+                    <input type="submit" class="form" id="form__submit">
+                    <br>
+                    <h5>Оптимальные настройки: <br> color type: 2 <br> posterize: 3-4 <br> resolution: 48-96 <br></h3>
+                </div>
+                <div>
+                    <img id="uploadedImg" src="" alt="Firstly upload an image" srcset=""><br>
+                    <a id="uploadedUrl" href=""></a>
+                </div>
+                <br>
+            </form><br>
+        </fieldset>
+        <br>
+        <span>Sample images: (click and submit)</span>
+        <div id="samples">
+            <img class="sample" src="/sample/cat.png" alt="">
+            <img class="sample" src="/sample/color.png" alt="">
+            <img class="sample" src="/sample/garry.png" alt="">
+            <img class="sample" src="/sample/mario.png" alt="">
+            <img class="sample" src="/sample/luigi.png" alt="">
+        </div>
+        <br>
+        
+    </center>
+    <!--<textarea id="tx" name="" id="" cols="30" rows="10"></textarea>-->
     <script>
+        var file;
+        $('#colorType_range').on('input',(e) => {
+            $('#colorType_num').html('color type: '+e.target.value);
+        });
+        $('#posterize_range').on('input', (e) => {
+            $('#posterize_num').html('posterize: '+e.target.value+'x');
+        })
+        $('#resolution_range').on('input', (e) => {
+            $('#resolution_num').html('resolution '+e.target.value+'x'+e.target.value);
+        })
+        $('#form__file').on('input', (e) => {
+            $('#prev').attr('src', URL.createObjectURL(e.target.files[0]));
+        })
+        $('#urlinp').on('input', (e) => {
+            $('#prev').attr('src', e.target.value);
+        })
+        $(document).on('click', (e) => {
+            if (e.target.className.indexOf('sample') >= 0) {
+                file = e.target.src;
+                $('#prev').attr('src', file);
+            }
+        })
         $('#uploadform')
         .submit((e) => {
-            let files = $('#form__file').prop('files')[0];
+            //e.preventDefault();
+            let file = $('#prev').attr('src');
             let formdata = new FormData(document.forms.upload);
-            console.log(formdata.get('file'));
-            e.preventDefault();
+            formdata.set('normalize', $('#normalize').prop('checked'));
+            formdata.set('grayscale', $('#grayscale').prop('checked'));
+            formdata.set('file', file);
+
+            //console.log(formdata.get('file'));
+            
             $.ajax({
                 url:'/upload',
                 dataType:'text',
@@ -29,7 +160,13 @@
                 processData:false,
                 data:formdata,
                 type:'post',
-                complete: (resp) => {console.log(JSON.parse(resp.responseText)); $('#tx').val(resp.responseText); $('#uploadedImg').attr('src', JSON.parse(resp.responseText).data.url)}
+                complete: (resp) => {
+                    let response = JSON.parse(resp.responseText);
+                    console.log(response);
+                    //$('#tx').val(resp.responseText);
+                    $('#uploadedImg').attr('src', response.data.url);
+                    $('#uploadedUrl').attr('href', response.data.url).html(response.data.url);
+                    }
 
             });
             return false;

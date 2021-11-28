@@ -14,6 +14,8 @@ class Server {
 
         //connect upload folder
         this.app.use('/'+process.env.UPLOAD_FOLDER, express.static(path.join(__dirname, '../../'+process.env.UPLOAD_FOLDER)));
+        //connect sample folder
+        this.app.use('/sample', express.static(path.join(__dirname, '../../sample/')));
         
         //connect middleware
         //TODO class BaseMiddleware and do it through for() 
@@ -21,6 +23,7 @@ class Server {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({extended:true}));
         this.app.use(fileUpload({createParentPath:true}));
+        this.app.use(busboy());
         this.app.use(morgan('dev'));
 
         //connect controllers
