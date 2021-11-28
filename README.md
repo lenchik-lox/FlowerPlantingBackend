@@ -1,5 +1,7 @@
 # Sirius 2 project | Automated Flower Planting
 
+
+
 # API
 
 ### POST `upload/`
@@ -12,6 +14,20 @@
 | colorType | Тип цветопередачи, 0 - монохром, 2 - цветной | 0-6 | 2
 | normalize | Нормализация | true/false | false
 | grayscale | Монохром | true/false | false
+#### Запрос:
+```http
+POST /upload HTTP/1.1
+Host: localhost:3000
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 169
+
+file=https%3A%2F%2Fwww.pnglib.com%2Fwp-content%2Fuploads%2F2020%2F08%2Fshiba-inu-barking_5f33fde9d8bbe.png&
+posterize=4&
+resolution=256&
+colorType=2&
+normalize=1&
+grayscale=0
+```
 #### Ответ:
 ```json
 	HTTP/1.1 200 OK
@@ -20,10 +36,10 @@
 		"status": 200,
 		"message": "OK",
 		"data": {
-			"filename": "ce16bcd7-bd3c-49fa-b1a5-e334e95de309.png",
-			"url": "/upload/ce16bcd7-bd3c-49fa-b1a5-e334e95de309.png",
+			"filename": "e49a6e5b-a58a-489d-9517-250169f5c85a.png",
+			"url": "/upload/e49a6e5b-a58a-489d-9517-250169f5c85a.png",
 			"mimetype": "image/png",
-			"size": 4721,
+			"size": 6921,
 			"dataurl": "data:image/png;base64,iVBORw0KGgoAAAAN..."
 		}
 		"error": {}

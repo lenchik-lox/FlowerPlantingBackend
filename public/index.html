@@ -42,6 +42,7 @@
             margin: 5px;
             border: 2px solid white;
             cursor: pointer;
+            image-rendering: pixelated;
         }
         .sample:hover {
             border:2px solid red;
@@ -60,6 +61,16 @@
             border-bottom: 1px dashed gray;
             padding-bottom:0.8px;
         }
+        @media screen and (max-width:2000px) {
+            form {
+                display: flex;
+            }
+        }
+        @media screen and (max-width:800px) {
+            form {
+                display: block;
+            }   
+        }
     </style>
 </head>
 <body>
@@ -68,7 +79,7 @@
             <form name="upload" action="" method="post" id="uploadform">
                 <div>
                     <input name="file" type="file" class="form" id="form__file" > or <input id="urlinp" name="file" type="text" placeholder="URL"><br>
-                    <img id="prev" src="" alt="loaded img preview" srcset="">
+                    <img id="prev" src="" alt="loaded img preview" srcset=""> <br> <br>
                 </div>
                 
                 <div class="btns">
@@ -113,6 +124,9 @@
             <img class="sample" src="/sample/garry.png" alt="">
             <img class="sample" src="/sample/mario.png" alt="">
             <img class="sample" src="/sample/luigi.png" alt="">
+            <img class="sample" src="/sample/hom.png" alt="">
+            <img class="sample" src="/sample/rgbcircle.png" alt="">
+            <img class="sample" src="/sample/mush.png" alt="">
         </div>
         <br>
         
@@ -162,6 +176,10 @@
                 type:'post',
                 complete: (resp) => {
                     let response = JSON.parse(resp.responseText);
+                    if (response.error) {
+                        alert("Error try again");
+                        return;
+                    }
                     console.log(response);
                     //$('#tx').val(resp.responseText);
                     $('#uploadedImg').attr('src', response.data.url);

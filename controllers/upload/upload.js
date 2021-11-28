@@ -29,6 +29,8 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
         else if (req.body.file) {
             let resp = await axios.get(req.body.file, {responseType: 'arraybuffer'})
             .catch(e => {throw new ServerError(500, e)});
+            if (resp?.headers['content-type'].split('/')[0] != 'image')
+                throw new ServerError(400, 'Need an image');
             file = {
                 data: resp.data,
                 name: req.body.file.split('/')[req.body.file.split('/').length-1],
@@ -48,8 +50,8 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
             throw new ServerError(400, `ColorType must be one of ${COLOR_TYPES}`);
         }
         const posterize = +req.body.posterize || 16;
-        const normalize = Boolean(req.body.normalize) && req.body.grayscale != 'false';
-        const grayscale = Boolean(req.body.grayscale) && req.body.grayscale != 'false';
+        const normalize = checkBoolean(req.body.normalize);
+        const grayscale = checkBoolean(req.body.grayscale);
         if (!MIME_TYPES.some(x => x == file.mimetype)) {
            throw new ServerError(400, `Image type must be one of ${MIME_TYPES}`);
         }
@@ -113,4 +115,18 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
             throw e;
     }
 })
+function checkBoolean(x) {
+    if (x == 'false') {
+        return false;
+    }
+    else if (x == 'true') {
+        return true;
+    }
+    else if (Boolean(+x)) {
+        return Boolean(+x);
+    }
+    else {
+        return false;
+    }
+}
 module.exports = uploadRoute;
