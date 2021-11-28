@@ -36,8 +36,9 @@ class Server {
         this.port = port;
     }
     listen(clb) {
-        let server = this.app.listen(this.port);
-        clb(server.address());
+        let server = this.app.listen(this.port, () => {
+            clb(server.address());
+        });
     }
 }
 
