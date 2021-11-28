@@ -84,12 +84,12 @@
                 
                 <div class="btns">
                     <div class="ss">
-                        <span title="Группы каналов, 0 - монохром без альфа-канала, 2 - цветной без альфа-канала, 4 - монохром с альфа-каналом, 6 - цветной с альфа каналом" class="propstr" id="colorType_num">color type: 6</span>
+                        <span title="Группы каналов, [0, 2] - цветной без альфа-канала, 4 - монохром с альфа-каналом, 6 - цветной с альфа каналом" class="propstr" id="colorType_num">color type: 6</span>
                         <input id="colorType_range" value="6" name="colorType" type="range" step="2" max="6" min="0"/> 
                     </div>
                     <div class="ss">
                         <span title="Ограничение по цветам" class="propstr" id="posterize_num">posterize: 4x</span>
-                        <input id="posterize_range" value="4" name="posterize" type="range" step="1" max="32" min="2"/> 
+                        <input id="posterize_range" value="4" name="posterize" type="range" step="1" max="16" min="2"/> 
                     </div>
                     <div class="ss">
                         <span title="Расширение изображения" class="propstr" id="resolution_num">resolution: 48x48</span>
@@ -107,7 +107,7 @@
                      
                     <input type="submit" class="form" id="form__submit">
                     <br>
-                    <h5>Оптимальные настройки: <br> color type: 2 <br> posterize: 3-4 <br> resolution: 48-96 <br></h3>
+                    <h5>Оптимальные настройки: <br> color type: 6 <br> posterize: 3-4 <br> resolution: 48-96 <br></h3>
                 </div>
                 <div>
                     <img id="uploadedImg" src="" alt="Firstly upload an image" srcset=""><br>
