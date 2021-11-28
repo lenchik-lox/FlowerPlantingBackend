@@ -1,13 +1,11 @@
-const { Route, Server } = require('../../core');
+const { Route } = require('../../core');
 const jimp = require('jimp');
 const path = require('path');
 const fs = require('fs');
 const http = require('http-status-codes'); 
 const ServerError = require('../../core/lib/serverError');
 const uuid = require('uuid');
-const im = require('imagemagick');
 const axios = require('axios').default;
-const PNG = require('pngjs').PNG;
 const ft = require('file-type');
 const MIME_TYPES = [
     "image/bmp",
