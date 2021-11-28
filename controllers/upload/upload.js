@@ -43,7 +43,7 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
         if (resolution > 256) {
             throw new ServerError(400, "Output resolution cannot be higher than 256x256");
         }
-        const colorType = +req.body.colorType;
+        const colorType = +req.body.colorType || 2;
         if (!COLOR_TYPES.some(x => x == colorType)) {
             throw new ServerError(400, `ColorType must be one of ${COLOR_TYPES}`);
         }
@@ -95,7 +95,7 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
                     message: http.getReasonPhrase(200),
                     data: {
                         filename:filename,
-                        url: `${process.env.HOST}/${process.env.UPLOAD_FOLDER}/${filename}`,
+                        url: `/${process.env.UPLOAD_FOLDER}/${filename}`,
                         mimetype: file.mimetype,
                         size: buffer.byteLength,
                         dataurl: 'data:image/png;base64,'+buffer.toString('base64'),
