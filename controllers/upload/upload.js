@@ -72,6 +72,9 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
         req.pipe(req.busboy);
         //TODO make better filename algo
         const filename = uuid.v4() + '.' + file.mimetype.split('/')[1];
+        if (!fs.existsSync(path.join(__dirname, `../../${process.env.UPLOAD_FOLDER}/`))) {
+            fs.mkdirSync(path.join(__dirname,`../../${process.env.UPLOAD_FOLDER}`));
+        }
         const filepath = path.join(__dirname, `../../${process.env.UPLOAD_FOLDER}/`, filename);
 
         jimp.read(file.data, (e,img) => {
