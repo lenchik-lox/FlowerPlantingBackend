@@ -27,7 +27,8 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
             throw new ServerError(400, "Need an image");
         }
         else if (req.body.file) {
-            let resp = await axios.get(req.body.file, {responseType: 'arraybuffer'});
+            let resp = await axios.get(req.body.file, {responseType: 'arraybuffer'})
+            .catch(e => {throw new ServerError(500, e)});
             file = {
                 data: resp.data,
                 name: req.body.file.split('/')[req.body.file.split('/').length-1],
