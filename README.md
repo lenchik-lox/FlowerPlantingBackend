@@ -14,6 +14,7 @@
 | colorType | Группы каналов, [0, 2] - цветной без альфа-канала, 4 - монохром с альфа-каналом, 6 - цветной с альфа каналом | 0-6 | 2
 | normalize | Нормализация | true/false | false
 | grayscale | Монохром | true/false | false
+| palette | Палитра цветов | 2bpp, 3bpp, 6bpp, NES, LOSPEC-500, SECAM, none | 6bpp
 #### Запрос:
 ```http
 POST /upload HTTP/1.1
@@ -26,7 +27,8 @@ posterize=4&
 resolution=256&
 colorType=2&
 normalize=1&
-grayscale=0
+grayscale=0&
+palette=none
 ```
 #### Ответ:
 ```json

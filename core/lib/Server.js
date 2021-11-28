@@ -16,6 +16,7 @@ class Server {
         this.app.use('/'+process.env.UPLOAD_FOLDER, express.static(path.join(__dirname, '../../'+process.env.UPLOAD_FOLDER)));
         //connect sample folder
         this.app.use('/sample', express.static(path.join(__dirname, '../../sample/')));
+        this.app.use('/palettes', express.static(path.join(__dirname, '../../palettes/')));
         
         //connect middleware
         //TODO class BaseMiddleware and do it through for() 

@@ -7,6 +7,7 @@ const ServerError = require('../../core/lib/serverError');
 const uuid = require('uuid');
 const axios = require('axios').default;
 const ft = require('file-type');
+const exec = require('child_process');
 const MIME_TYPES = [
     "image/bmp",
     "image/jpeg",
@@ -19,9 +20,18 @@ const COLOR_TYPES = [
     4,
     6,
 ]
-
+const PALETTES = [
+    '2bpp',
+    '3bpp',
+    '6bpp',
+    'NES',
+    'LOSPEC-500',
+    'SECAM',
+    'none'
+]
 var uploadRoute = new Route('/upload', 'post', async (req, res) => {
     try {
+        const startTime = new Date().getTime();
         var file;
         if (!req.files && !req.body.file) {
             throw new ServerError(400, "Need an image");
@@ -48,6 +58,10 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
         const colorType = +req.body.colorType || 2;
         if (!COLOR_TYPES.some(x => x == colorType)) {
             throw new ServerError(400, `ColorType must be one of ${COLOR_TYPES}`);
+        }
+        const palette = req.body.palette || '6bpp';
+        if (!PALETTES.some (x => x == palette)) {
+            throw new ServerError(400, `Palette must be one of ${PALETTES}`);
         }
         const posterize = +req.body.posterize || 16;
         const normalize = checkBoolean(req.body.normalize);
@@ -90,18 +104,44 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
             
             img.getBuffer(file.mimetype, (e, buffer) => {
                 if (e) throw new ServerError(500, e.body);
+
+                const fileurl = `/${process.env.UPLOAD_FOLDER}/${filename}`;
                 
-                fs.writeFileSync(filepath, buffer);
-                res.send({
-                    status: 200,
-                    message: http.getReasonPhrase(200),
-                    data: {
-                        filename:filename,
-                        url: `/${process.env.UPLOAD_FOLDER}/${filename}`,
-                        mimetype: file.mimetype,
-                        size: buffer.byteLength,
-                        dataurl: 'data:image/png;base64,'+buffer.toString('base64'),
-                    }
+                if (palette == 'none') {
+                    fs.writeFileSync(filepath, buffer);
+                    const endTime = new Date().getTime();
+                    res.send({
+                        status: 200,
+                        message: http.getReasonPhrase(200),
+                        data: {
+                            filename:filename,
+                            url: fileurl,
+                            mimetype: file.mimetype,
+                            size: buffer.byteLength,
+                            dataurl: 'data:image/png;base64,'+buffer.toString('base64'),
+                            elapsed: `${endTime - startTime}ms`,
+                        }
+                    })
+                    return;
+                }
+                fs.writeFileSync(filepath+'.temp', buffer);
+                const palettepath = path.join(__dirname, `../../palettes/${palette}f.png`) // f for ffmpeg
+                const outpath = path.join(__dirname, `../../${process.env.UPLOAD_FOLDER}/${filename}`);
+                const ffmpeg_cli = `ffmpeg -i "${filepath+'.temp'}" -i "${palettepath}" -lavfi paletteuse=:dither=bayer:bayer_scale=5 "${outpath}"`;
+                exec.exec(ffmpeg_cli, (err, out, stderr) => {
+                    const endTime = new Date().getTime();
+                    res.send({
+                        status: 200,
+                        message: http.getReasonPhrase(200),
+                        data: {
+                            filename:filename,
+                            url: fileurl,
+                            mimetype: file.mimetype,
+                            size: buffer.byteLength,
+                            dataurl: 'data:image/png;base64,'+buffer.toString('base64'),
+                            elapsed: `${endTime - startTime}ms`,
+                        }
+                    })
                 })
             })
         });

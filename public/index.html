@@ -61,6 +61,15 @@
             border-bottom: 1px dashed gray;
             padding-bottom:0.8px;
         }
+        #palettepreview {
+            max-width: 256px;
+            height:112px;
+            image-rendering: pixelated;
+            border:1px solid red;
+        }
+        #uploadedImg {
+            border:1px solid red
+        }
         @media screen and (max-width:2000px) {
             form {
                 display: flex;
@@ -104,14 +113,27 @@
                         <input type="checkbox" id="grayscale" name="grayscale">
                         <label title="Монохром" for="grayscale">grayscale</label>
                     </div>
+                    <div class="ss">
+                        <select name="palette" id="paletteselect">
+                            <option value="none">none</option>
+                            <option value="2bpp">2 bpp</option>
+                            <option value="3bpp">3 bpp</option>
+                            <option selected value="6bpp">6 bpp</option>
+                            <option value="NES">NES</option>
+                            <option value="LOSPEC-500">LOSPEC-500</option>
+                            <option value="SECAM">SECAM</option>
+                        </select>
+                        <img src="/palettes/6bpp.png" alt="palette preview" id="palettepreview">
+                    </div>
                      
                     <input type="submit" class="form" id="form__submit">
                     <br>
-                    <h5>Оптимальные настройки: <br> color type: 6 <br> posterize: 3-4 <br> resolution: 48-96 <br></h3>
+                    <h5>Оптимальные настройки: <br> color type: 6 <br> posterize: 3-4 (4-16 с палитрой) <br> resolution: 48-96 <br></h3>
                 </div>
                 <div>
                     <img id="uploadedImg" src="" alt="Firstly upload an image" srcset=""><br>
                     <a id="uploadedUrl" href=""></a>
+                    <h4>Время выполнения: <span id="elapsed"></span></h4>
                 </div>
                 <br>
             </form><br>
@@ -155,9 +177,13 @@
                 $('#prev').attr('src', file);
             }
         })
+        $('#paletteselect').change((e) => {
+            $('#palettepreview').attr('src', `/palettes/${e.target.value}.png`);
+        })
         $('#uploadform')
         .submit((e) => {
             //e.preventDefault();
+            $('#form__submit').attr('disabled', 'true');
             let file = $('#prev').attr('src');
             let formdata = new FormData(document.forms.upload);
             formdata.set('normalize', $('#normalize').prop('checked'));
@@ -178,12 +204,15 @@
                     let response = JSON.parse(resp.responseText);
                     if (response.error) {
                         alert("Error try again");
+                        console.log(response.error);
                         return;
                     }
                     console.log(response);
                     //$('#tx').val(resp.responseText);
                     $('#uploadedImg').attr('src', response.data.url);
                     $('#uploadedUrl').attr('href', response.data.url).html(response.data.url);
+                    $('#elapsed').html(response.data.elapsed);
+                    $('#form__submit').removeAttr('disabled');
                     }
 
             });
