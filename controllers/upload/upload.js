@@ -68,7 +68,7 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
         const resolution = ~~req.body.resolution || 64;
         //                 ^^
         //round and convert to int
-        if (resolution > 256) {
+        if (resolution > 256 || resolution < 16) {
             throw new ServerError(400, "Output resolution cannot be higher than 256x256");
         }
         const colorType = ~~req.body.colorType || 2;
@@ -80,9 +80,9 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
             throw new ServerError(400, `Palette must be one of ${PALETTES}`);
         }
         const bayer_scale = ~~req.body.bayer_scale || 5;
-        /*if (!bayer_scale.oneOf(BAYER_SCALES)) {
+        if (!BAYER_SCALES.some(x => x == bayer_scale)) {
             throw new ServerError(400, `bayer_scale must be one of ${BAYER_SCALES}`);
-        }*/
+        }
         const posterize = ~~req.body.posterize || 16;
         const normalize = checkBoolean(req.body.normalize);
         const grayscale = checkBoolean(req.body.grayscale);
@@ -172,7 +172,8 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
                             });
                             fs.rm(filepath+'.temp', () => {});  
                         })
-                    });
+                    })
+                    //.catch(e => {throw new ServerError(500, e.message)});
                 });
                
                 /*exec.exec(ffmpeg_cli, (err, out, stderr) => {

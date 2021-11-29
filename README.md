@@ -15,6 +15,7 @@
 | normalize | Нормализация | true/false | false
 | grayscale | Монохром | true/false | false
 | palette | Палитра цветов | 2bpp, 3bpp, 6bpp, NES, LOSPEC-500, SECAM, none | 6bpp
+| bayer_scale | Масштабирование дизеринга | 0-5 | 5
 #### Запрос:
 ```http
 POST /upload HTTP/1.1
@@ -28,7 +29,8 @@ resolution=256&
 colorType=2&
 normalize=1&
 grayscale=0&
-palette=none
+palette=3bpp&
+bayer_scale=5
 ```
 #### Ответ:
 ```json
