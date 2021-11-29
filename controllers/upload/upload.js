@@ -7,20 +7,20 @@ const ServerError = require('../../core/lib/serverError');
 const uuid = require('uuid');
 const axios = require('axios').default;
 const ft = require('file-type');
-const exec = require('child_process');
-const MIME_TYPES = [
+const ffmpeg = require('ffmpeg');
+const MIME_TYPES = [ // TODO enum
     "image/bmp",
     "image/jpeg",
     "image/png", 
     "image/x-ms-bmp", 
 ];
-const COLOR_TYPES = [
+const COLOR_TYPES = [ // TODO enum
     0,
     2,
     4,
     6,
 ]
-const PALETTES = [
+const PALETTES = [ // TODO enum
     '2bpp',
     '3bpp',
     '6bpp',
@@ -29,6 +29,20 @@ const PALETTES = [
     'SECAM',
     'none'
 ]
+const BAYER_SCALES = [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+]
+//TODO create assert class
+/*Object.prototype.oneOf = function(x) {
+    if (x instanceof Array)
+        return x.some(item => item == this);
+    return false;
+}*/
 var uploadRoute = new Route('/upload', 'post', async (req, res) => {
     try {
         const startTime = new Date().getTime();
@@ -51,11 +65,13 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
         else {
             file = req.files.file;
         }
-        const resolution = +req.body.resolution || 64;
+        const resolution = ~~req.body.resolution || 64;
+        //                 ^^
+        //round and convert to int
         if (resolution > 256) {
             throw new ServerError(400, "Output resolution cannot be higher than 256x256");
         }
-        const colorType = +req.body.colorType || 2;
+        const colorType = ~~req.body.colorType || 2;
         if (!COLOR_TYPES.some(x => x == colorType)) {
             throw new ServerError(400, `ColorType must be one of ${COLOR_TYPES}`);
         }
@@ -63,7 +79,11 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
         if (!PALETTES.some (x => x == palette)) {
             throw new ServerError(400, `Palette must be one of ${PALETTES}`);
         }
-        const posterize = +req.body.posterize || 16;
+        const bayer_scale = ~~req.body.bayer_scale || 5;
+        /*if (!bayer_scale.oneOf(BAYER_SCALES)) {
+            throw new ServerError(400, `bayer_scale must be one of ${BAYER_SCALES}`);
+        }*/
+        const posterize = ~~req.body.posterize || 16;
         const normalize = checkBoolean(req.body.normalize);
         const grayscale = checkBoolean(req.body.grayscale);
         if (!MIME_TYPES.some(x => x == file.mimetype)) {
@@ -91,8 +111,6 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
                 img.resize(resolution, resolution, jimp.RESIZE_NEAREST_NEIGHBOR, onError)
                 .posterize(posterize, onError)
                 .colorType(colorType, onError);
-                //.color([{ apply: "saturate" , params:[+req.body.saturate_rate] }]) // DONT WORKS
-                
             }
             catch(e)
             {
@@ -127,11 +145,37 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
                     })
                     return;
                 }
-                fs.writeFileSync(filepath+'.temp', buffer);
                 const palettepath = path.join(__dirname, `../../palettes/${palette}f.png`) // f for ffmpeg
                 const outpath = path.join(__dirname, `../../${process.env.UPLOAD_FOLDER}/${filename}`);
-                const ffmpeg_cli = `ffmpeg -i "${filepath+'.temp'}" -i "${palettepath}" -lavfi paletteuse=:dither=bayer:bayer_scale=5 "${outpath}"`;
-                exec.exec(ffmpeg_cli, (err, out, stderr) => {
+                //const ffmpeg_cli = `ffmpeg -i "${filepath+'.temp'}" -i "${palettepath}" -lavfi paletteuse=:dither=bayer:bayer_scale=5 "${outpath}"`;
+                const tempfilename = path.join(__dirname, '../../upload/'+filename+'.temp')
+                fs.writeFile(tempfilename, buffer, () => {
+                    new ffmpeg(tempfilename, (e, vid) => {
+                        if (e)
+                            throw new ServerError(500, e.message);
+                        vid.addInput(`${palettepath}`);
+                        vid.addCommand('-lavfi', `"paletteuse=dither=bayer:bayer_scale=${bayer_scale}"`);
+                        vid.save(`"${outpath}"`)
+                        .then(() => {
+                            const endTime = new Date().getTime();
+                            res.send({
+                                status: 200,
+                                message: http.getReasonPhrase(200),
+                                data: {
+                                    filename:filename,
+                                    url: fileurl,
+                                    mimetype: file.mimetype,
+                                    size: buffer.byteLength,
+                                    dataurl: 'data:image/png;base64,'+buffer.toString('base64'),
+                                    elapsed: `${endTime - startTime}ms`,
+                                }
+                            });
+                            fs.rm(filepath+'.temp', () => {});  
+                        })
+                    });
+                });
+               
+                /*exec.exec(ffmpeg_cli, (err, out, stderr) => {
                     const endTime = new Date().getTime();
                     res.send({
                         status: 200,
@@ -146,7 +190,7 @@ var uploadRoute = new Route('/upload', 'post', async (req, res) => {
                         }
                     })
                     fs.rm(filepath+'.temp');
-                })
+                })*/
             })
         });
     }
